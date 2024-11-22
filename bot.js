@@ -17,7 +17,7 @@ app.get('/', (req, res) => {
 const commands = [
     { command: '/start', description: 'Start the bot' },
     { command: '/help', description: 'Display this help message' },
-    { command: '/getmeme', description: 'Generate an image based on the provided prompt' },
+    { command: '/beansdegen', description: 'Generate an image based on the provided prompt' },
 
 ];
 
@@ -28,7 +28,7 @@ bot.onText(/\/start/, (msg, match) => {
     let name = msg.chat.first_name;
 
     const chatId = msg.chat.id;
-    const welcomeMessage = `Hey ${name}! \n \nWelcome to Beans Coin AI Image Generation Bot! Here are some commands you can use: \n \n - /start: Start the bot \n - /help: Display this help message  \n - /reset: Reset your chat history  \n - /getmeme: Generate an image from prompt /getmeme < prompt > .  \n\nIf you have any questions or need assistance, feel free to ask! \n  \nDon't forget to check us out on Twitter and Telegram.`;
+    const welcomeMessage = `Hey ${name}! \n \nWelcome to Beans Coin AI Image Generation Bot! Here are some commands you can use: \n \n - /start: Start the bot \n - /help: Display this help message  \n - /reset: Reset your chat history  \n - /beansdegen: Generate an image from prompt /beansdegen < prompt > .  \n\nIf you have any questions or need assistance, feel free to ask! \n  \nDon't forget to check us out on Twitter and Telegram.`;
 
 
     const inlineKeyboard = {
@@ -51,7 +51,7 @@ bot.onText(/\/help/, (msg, match) => {
     let name = msg.chat.first_name;
 
     const chatId = msg.chat.id;
-    const welcomeMessage = `Hey ${name}! \n \nWelcome to Beans Coin AI Image Generation Bot! Here are some commands you can use: \n \n - /start: Start the bot \n - /help: Display this help message  \n - /reset: Reset your chat history  \n - /getmeme: Generate an image from prompt /image < prompt > .  \n\nIf you have any questions or need assistance, feel free to ask! \n  \nDon't forget to check us out on Twitter and Telegram.`;
+    const welcomeMessage = `Hey ${name}! \n \nWelcome to Beans Coin AI Image Generation Bot! Here are some commands you can use: \n \n - /start: Start the bot \n - /help: Display this help message  \n - /reset: Reset your chat history  \n - /getmeme: Generate an image from prompt /beansdegen < prompt > .  \n\nIf you have any questions or need assistance, feel free to ask! \n  \nDon't forget to check us out on Twitter and Telegram.`;
 
 
     const inlineKeyboard = {
