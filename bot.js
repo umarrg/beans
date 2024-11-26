@@ -1,12 +1,15 @@
 require('dotenv').config()
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
+
 const app = express();
-const sdk = require('@api/leonardoai');
 const bot = new TelegramBot(process.env.TOKEN, { polling: true });
-// const bot = new TelegramBot(process.env.SDK, { polling: true });
 const PORT = process.env.PORT || 9000
-sdk.auth(process.env.SDK);
+const { fal } = require("@fal-ai/client");
+
+fal.config({
+    credentials: process.env.BEANS
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true, }));
 app.get('/', (req, res) => {
@@ -51,7 +54,7 @@ bot.onText(/\/help/, (msg, match) => {
     let name = msg.chat.first_name;
 
     const chatId = msg.chat.id;
-    const welcomeMessage = `Hey ${name}! \n \nWelcome to Beans Coin AI Image Generation Bot! Here are some commands you can use: \n \n - /start: Start the bot \n - /help: Display this help message  \n - /reset: Reset your chat history  \n - /getmeme: Generate an image from prompt /beansdegen < prompt > .  \n\nIf you have any questions or need assistance, feel free to ask! \n  \nDon't forget to check us out on Twitter and Telegram.`;
+    const welcomeMessage = `Hey ${name}! \n \nWelcome to Beans Coin AI Image Generation Bot! Here are some commands you can use: \n \n - /start: Start the bot \n - /help: Display this help message  \n - /reset: Reset your chat history  \n - /beansdegen: Generate an image from prompt /beansdegen < prompt > .  \n\nIf you have any questions or need assistance, feel free to ask! \n  \nDon't forget to check us out on Twitter and Telegram.`;
 
 
     const inlineKeyboard = {
@@ -70,32 +73,39 @@ bot.onText(/\/help/, (msg, match) => {
 
     bot.sendMessage(chatId, welcomeMessage, inlineKeyboard);
 });
-bot.onText(/\/getmeme (.+)/, async (msg, match) => {
+bot.onText(/\/beansdegen (.+)/, async (msg, match) => {
     const chatId = msg.chat.id;
     const prompt = "A beans " + match[1];
     const generatingMessage = await bot.sendMessage(chatId, "Generating...");
-
+    console.log("yes")
     try {
-        const { data } = await sdk.createGeneration({
-            alchemy: true,
-            height: 768,
-            negative_prompt: 'plastic, deformed, blurry, bad anatomy, bad eyes, crossed eyes, disfigured, poorly drawn face, mutation, mutated, extra limb, ugly, poorly drawn hands, missing limb, floating limbs, disconnected limbs, malformed hands, out of focus, long neck, long body, mutated hands and fingers, out of frame, blender, doll-like, cropped, low-res, close-up, double heads, too many fingers, repetitive, black and white, grainy',
-            // modelId: '607ecb19-d11d-4e09-b32a-2d72287e7ce5',
-            modelId: "9a10f326-eb46-42cd-a044-4b2b0a3db788",
-            num_images: 1,
-            presetStyle: 'DYNAMIC',
-            prompt: prompt,
-            width: 1024
+        const result = await fal.subscribe("fal-ai/flux-lora", {
+            input: {
+                loras: [{
+                    path: "https://v3.fal.media/files/lion/6FX1eqZYkRbB8-WlYdn8R_pytorch_lora_weights.safetensors",
+                    scale: 1
+                }],
+                prompt: prompt,
+                embeddings: [],
+                model_name: null,
+                enable_safety_checker: true
+            },
+            logs: true,
+            onQueueUpdate: (update) => {
+                if (update.status === "IN_PROGRESS") {
+                    update.logs.map((log) => log.message).forEach(console.log);
+                }
+            },
         });
+        console.log(result.data.images[0].url);
+        console.log(result.requestId);
 
 
 
-        const generationId = data.sdGenerationJob.generationId;
-
+        const imageUrl = result.data.images[0].url
         setTimeout(async () => {
             try {
-                const genData = await sdk.getGenerationById({ id: generationId });
-                const imageUrl = genData.data.generations_by_pk.generated_images[0].url;
+
                 await bot.sendPhoto(chatId, imageUrl);
             } catch (error) {
                 console.error(error);
