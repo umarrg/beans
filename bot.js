@@ -80,10 +80,8 @@ bot.onText(/\/beansdegen (.+)/, async (msg, match) => {
     const chatId = msg.chat.id;
     const prompt = "A beans " + match[1];
     const generatingMessage = await bot.sendMessage(chatId, "Generating...");
-    console.log("yes");
 
     try {
-        // Generate image using FAL
         const result = await fal.subscribe("fal-ai/flux-lora", {
             input: {
                 loras: [{
@@ -111,13 +109,21 @@ bot.onText(/\/beansdegen (.+)/, async (msg, match) => {
         fs.writeFileSync(generatedImagePath, response.data);
 
         const watermarkPath = path.join(__dirname, 'watermark.png');
+        const resizedLogoPath = path.join(__dirname, 'resized_watermark.png');
+        await sharp(watermarkPath)
+            .resize({ width: 100 })
+            .toFile(resizedLogoPath);
+
         const outputPath = path.join(__dirname, 'final_image.jpg');
+        const { width: imageWidth, height: imageHeight } = await sharp(generatedImagePath).metadata();
+        const logoMetadata = await sharp(resizedLogoPath).metadata();
 
         await sharp(generatedImagePath)
             .composite([
                 {
-                    input: watermarkPath,
-                    gravity: 'south'
+                    input: resizedLogoPath,
+                    top: 10, // Position from the top (adjust as needed)
+                    left: imageWidth - logoMetadata.width - 10 // Position from the right (adjust as needed)
                 }
             ])
             .toFile(outputPath);
@@ -126,6 +132,7 @@ bot.onText(/\/beansdegen (.+)/, async (msg, match) => {
 
         fs.unlinkSync(generatedImagePath);
         fs.unlinkSync(outputPath);
+        fs.unlinkSync(resizedLogoPath);
 
     } catch (err) {
         console.error(err);
